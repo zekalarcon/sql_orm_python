@@ -11,12 +11,11 @@ Programa creado para poner a prueba los conocimientos
 adquiridos durante la clase
 '''
 
-__author__ = "Inove Coding School"
-__email__ = "alumnos@inove.com.ar"
+__author__ = "Ezequiel Alarcon"
+__email__ = "zekalarcon@gmail.com"
 __version__ = "1.1"
 
 import sqlite3
-
 import sqlalchemy
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
@@ -48,12 +47,12 @@ class Estudiante(base):
     tutor = relationship("Tutor")
 
     def __repr__(self):
-        return f"Estudiante: {self.name}, edad {self.age}, grado {self.grade}, tutor {self.tutor.name}"
+        return f"Estudiante: {self.name}, edad {self.age}, grado {self.grade}, {self.tutor}"
 
 
 def create_schema():
     # Borrar todos las tablas existentes en la base de datos
-    # Esta linea puede comentarse sino se eliminar los datos
+    # Esta linea puede comentarse sino se eliminaN los datos
     base.metadata.drop_all(engine)
 
     # Crear las tablas
@@ -78,6 +77,30 @@ def fill():
     # No olvidarse que antes de poder crear un estudiante debe haberse
     # primero creado el tutor.
 
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    tutores = ['JUAN PEREZ', 'MIKE RAMIREZ', 'ROBERTO SANCHEZ']
+    
+    for tutor in tutores:
+        tutor_name = Tutor(name= tutor)
+
+        session.add(tutor_name)
+        session.commit()
+
+
+    alumnos = [['NICOLAS MARTINEZ',22,1], ['MARCOS SASTRE', 27, 3], ['LEONEL RAMIREZ', 25, 2],
+               ['SANTIAGO RAMOS', 29, 3], ['LEANDRO GRACIA', 19, 1], ['MARTIN PEDRAZA', 23, 2]]
+
+    
+    for alumno in alumnos:
+        alumno_data = Estudiante(name = alumno[0], age = alumno[1], grade = alumno[2])
+        tutor_id = alumno[2]
+        alumno_data.tutor_id = tutor_id
+
+        session.add(alumno_data)
+        session.commit()
+        
 
 def fetch():
     print('Comprovemos su contenido, ¿qué hay en la tabla?')
@@ -85,6 +108,14 @@ def fetch():
     # todos los objetos creaods de la tabla estudiante.
     # Imprimir en pantalla cada objeto que traiga la query
     # Realizar un bucle para imprimir de una fila a la vez
+
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    query = session.query(Estudiante)
+    row = query.all()
+    for data in row:
+        print(data)
 
 
 def search_by_tutor(tutor):
@@ -96,6 +127,18 @@ def search_by_tutor(tutor):
     # Para poder realizar esta query debe usar join, ya que
     # deberá crear la query para la tabla estudiante pero
     # buscar por la propiedad de tutor.name
+
+
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    query = session.query(Estudiante).join(Tutor).filter(Tutor.name == tutor)
+    row = query.all()
+
+    for data in row:
+        print(data)
+
+    
 
 
 def modify(id, name):
@@ -112,6 +155,25 @@ def modify(id, name):
     # en la función update_persona_nationality
 
 
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    query = session.query(Tutor.id).filter(Tutor.name == name)
+    tutor = query.first()
+
+    query = session.query(Estudiante).filter(Estudiante.id == id)
+    estudiante = query.first()
+
+    estudiante.tutor_id = tutor[0]
+
+    session.add(estudiante)
+    session.commit()
+
+    print(f'Estudiante  ID: {id} se modifico a tutor {name}')
+    
+    
+    
+
 def count_grade(grade):
     print('Estudiante por grado')
     # Utilizar la sentencia COUNT para contar cuantos estudiante
@@ -121,19 +183,28 @@ def count_grade(grade):
     # TIP: En clase se hizo lo mismo para las nacionalidades con
     # en la función count_persona
 
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    query = session.query(Estudiante).filter(Estudiante.grade == grade).count()
+    print(f'Estudiantes Grade {grade} = {query}')
+
+    
+
 
 if __name__ == '__main__':
     print("Bienvenidos a otra clase de Inove con Python")
     create_schema()   # create and reset database (DB)
-    # fill()
-    # fetch()
+    
+    fill()
+    fetch()
 
-    tutor = 'nombre_tutor'
-    # search_by_tutor(tutor)
+    tutor = 'MIKE RAMIREZ'
+    search_by_tutor(tutor)
 
-    nuevo_tutor = 'nombre_tutor'
+    nuevo_tutor = 'JUAN PEREZ'
     id = 2
-    # modify(id, nuevo_tutor)
+    modify(id, nuevo_tutor)
 
     grade = 2
-    # count_grade(grade)
+    count_grade(grade)
