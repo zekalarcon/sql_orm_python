@@ -91,7 +91,11 @@ def fetch(id):
     else:
         query = session.query(Libro).filter(Libro.id == id)
         libro = query.first()
-        print(libro)
+
+        if libro is None:
+            print('Id libro no existe')
+        else:    
+            print(libro)
 
 
 def search_author(book_title):
@@ -100,25 +104,29 @@ def search_author(book_title):
     session = Session()
 
     query = session.query(Autor).join(Libro).filter(Libro.title == book_title)
-    libro = query.first()
-    return libro
+    autor = query.first()
+
+    if autor is None:
+        return f'Book title "{book_title}" no existe'
+    else:    
+        return autor
 
     
 
 if __name__ == "__main__":
   # Creo DB
-  create_schema()
+  #create_schema()
 
   # Completo la DB con el CSV
-  fill()
+  #fill()
 
   # Leer filas
   # 0 para ver todo el contenido de la DB
   # Mayor a 0 para buscar por id especifico
-  id = 2
-  fetch(id)  
+  id = 20
+  #fetch(id)  
  
 
   # Buscar autor por titulo del libro
-  book_title = 'El amor en los tiempos del colera'
-  print(search_author(book_title))
+  book_title = 'Eff'
+  #print(search_author(book_title))
